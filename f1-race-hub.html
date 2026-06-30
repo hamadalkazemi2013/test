@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 Race Hub · 2026 Season</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d13;
+    --bg-2:#0e131c;
+    --card:#141a25;
+    --card-2:#1a2230;
+    --card-hover:#1e2738;
+    --line:#242e3e;
+    --line-soft:#1c2433;
+    --text:#eef2f8;
+    --text-2:#aab4c4;
+    --muted:#727e90;
+    --red:#e10600;        /* F1 red */
+    --red-dim:#b00500;
+    --green:#1db954;
+    --yellow:#ffd23f;
+    --white-tyre:#e9edf2;
+    --radius:16px;
+    --radius-sm:11px;
+    --shadow:0 10px 40px -12px rgba(0,0,0,.6);
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(225,6,0,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, rgba(40,80,160,.10), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono-num{font-family:'Titillium Web',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+  a{color:inherit;text-decoration:none}
+
+  /* ====== HEADER ====== */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(10,13,19,.82);
+    backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .header-inner{
+    max-width:1240px;margin:0 auto;padding:14px 22px;
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;font-family:'Titillium Web';font-weight:900}
+  .brand .mark{
+    width:42px;height:30px;border-radius:6px;
+    background:linear-gradient(135deg,var(--red),var(--red-dim));
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:900;color:#fff;letter-spacing:-1px;
+    box-shadow:0 4px 14px -2px rgba(225,6,0,.5);
+    position:relative;overflow:hidden;
+  }
+  .brand .mark::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 6px,rgba(255,255,255,.08) 6px 8px)}
+  .brand h1{font-size:19px;letter-spacing:.5px;line-height:1}
+  .brand h1 span{color:var(--red)}
+  .brand small{display:block;font-family:'Inter';font-weight:500;font-size:10px;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-top:2px}
+
+  .header-controls{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ctrl-group{display:flex;align-items:center;gap:8px}
+  .ctrl-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  select{
+    background:var(--card-2);color:var(--text);border:1px solid var(--line);
+    border-radius:9px;padding:8px 30px 8px 12px;font-family:'Inter';font-size:13px;font-weight:500;
+    cursor:pointer;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23aab4c4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;
+    transition:border-color .2s,background .2s;
+  }
+  select:hover{border-color:var(--red);background-color:var(--card-hover)}
+
+  /* spoiler toggle */
+  .toggle{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+  .toggle .track{width:42px;height:24px;border-radius:99px;background:var(--card-2);border:1px solid var(--line);position:relative;transition:background .25s,border-color .25s}
+  .toggle .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .25s var(--ease),background .25s}
+  .toggle.on .track{background:rgba(225,6,0,.25);border-color:var(--red)}
+  .toggle.on .knob{transform:translateX(18px);background:var(--red)}
+  .toggle .txt{font-size:12px;font-weight:600;color:var(--text-2)}
+
+  /* ====== TABS ====== */
+  .tabs{max-width:1240px;margin:0 auto;padding:0 22px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    padding:14px 20px;font-family:'Titillium Web';font-weight:700;font-size:14px;letter-spacing:.4px;
+    color:var(--muted);border:none;background:none;cursor:pointer;position:relative;white-space:nowrap;
+    transition:color .2s;text-transform:uppercase;
+  }
+  .tab:hover{color:var(--text-2)}
+  .tab.active{color:var(--text)}
+  .tab.active::after{content:'';position:absolute;left:14px;right:14px;bottom:0;height:3px;background:var(--red);border-radius:3px 3px 0 0;box-shadow:0 0 12px var(--red)}
+
+  /* ====== LAYOUT ====== */
+  main{max-width:1240px;margin:0 auto;padding:26px 22px 80px}
+  .panel{display:none;animation:fade .45s var(--ease)}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .section-head{display:flex;align-items:baseline;gap:14px;margin:6px 0 18px}
+  .section-head h2{font-family:'Titillium Web';font-weight:900;font-size:24px;letter-spacing:.3px}
+  .section-head .sub{font-size:13px;color:var(--muted)}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);font-weight:700;font-family:'Titillium Web'}
+
+  /* ====== HERO LIVE CARD ====== */
+  .hero{
+    display:grid;grid-template-columns:1.15fr .85fr;gap:1px;
+    background:var(--line-soft);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);margin-bottom:22px;
+  }
+  .hero-left{background:linear-gradient(160deg,#16202f,#10151e);padding:30px 32px;position:relative;overflow:hidden}
+  .hero-left::before{content:'';position:absolute;top:-40%;right:-20%;width:60%;height:160%;background:radial-gradient(circle,rgba(225,6,0,.16),transparent 65%);pointer-events:none}
+  .live-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;font-family:'Titillium Web';font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
+  .live-badge.upnext{background:rgba(80,130,255,.14);color:#7aa5ff;border:1px solid rgba(80,130,255,.3)}
+  .live-badge.weekend{background:rgba(255,210,63,.14);color:var(--yellow);border:1px solid rgba(255,210,63,.3)}
+  .live-badge.live{background:rgba(225,6,0,.18);color:#ff5a54;border:1px solid rgba(225,6,0,.4)}
+  .live-badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .live-badge.live .dot{animation:blink 1.1s infinite}
+  @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.35)}}
+
+  .hero-round{font-size:12px;color:var(--muted);margin:18px 0 4px;letter-spacing:1px;text-transform:uppercase;font-weight:600}
+  .hero-title{font-family:'Titillium Web';font-weight:900;font-size:clamp(26px,3.5vw,38px);line-height:1.05;letter-spacing:.2px}
+  .hero-flag{font-size:30px;margin-right:10px;vertical-align:-3px}
+  .hero-circuit{color:var(--text-2);font-size:14px;margin-top:6px;display:flex;align-items:center;gap:8px}
+
+  .countdown-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:26px 0 10px}
+  .countdown{display:flex;gap:10px}
+  .cd-unit{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;padding:12px 0;text-align:center;min-width:68px;flex:1}
+  .cd-unit .num{font-family:'Titillium Web';font-weight:900;font-size:32px;line-height:1;color:#fff}
+  .cd-unit .lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:6px;font-weight:600}
+  .cd-session{margin-top:14px;font-size:14px;color:var(--text-2)}
+  .cd-session b{color:#fff;font-weight:700}
+  .cd-localtime{font-size:12.5px;color:var(--muted);margin-top:3px}
+
+  .hero-watch{margin-top:22px;padding-top:18px;border-top:1px solid var(--line-soft);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .hero-watch .wl{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .broadcaster{display:inline-flex;align-items:center;gap:8px;background:var(--card-2);border:1px solid var(--line);padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600}
+  .broadcaster .bdot{width:9px;height:9px;border-radius:2px}
+
+  /* hero right: track + facts */
+  .hero-right{background:linear-gradient(160deg,#111722,#0c1018);padding:26px 28px;display:flex;flex-direction:column}
+  .track-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:170px;position:relative}
+  .track-wrap svg{width:100%;height:auto;max-height:210px;overflow:visible}
+  .track-path{fill:none;stroke:url(#trackgrad);stroke-width:6;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 8px rgba(225,6,0,.35))}
+  .track-start{fill:#fff}
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  .fact{background:rgba(0,0,0,.25);border:1px solid var(--line-soft);border-radius:11px;padding:12px 10px;text-align:center}
+  .fact .v{font-family:'Titillium Web';font-weight:900;font-size:20px;color:#fff}
+  .fact .k{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:3px;font-weight:600}
+  .tyres{margin-top:16px}
+  .tyres .tl{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:9px}
+  .tyre-row{display:flex;gap:14px}
+  .tyre{display:flex;align-items:center;gap:8px}
+  .tyre .ring{width:26px;height:26px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;font-family:'Titillium Web'}
+  .tyre .tn{font-size:12px;color:var(--text-2);font-weight:600}
+  .tyre small{display:block;font-size:10px;color:var(--muted)}
+
+  /* mini weekend schedule under hero */
+  .weekend-sessions{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .ws-head{padding:14px 20px;border-bottom:1px solid var(--line-soft);font-family:'Titillium Web';font-weight:700;font-size:14px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-2)}
+  .ws-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .ws-item{padding:16px 20px;border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);position:relative}
+  .ws-item .sname{font-family:'Titillium Web';font-weight:700;font-size:15px}
+  .ws-item .stime{font-size:12.5px;color:var(--text-2);margin-top:5px}
+  .ws-item .sdate{font-size:11px;color:var(--muted);margin-top:2px}
+  .ws-item.next{background:rgba(225,6,0,.06)}
+  .ws-item.next::before{content:'NEXT';position:absolute;top:10px;right:14px;font-size:9px;font-weight:800;letter-spacing:1px;color:var(--red);font-family:'Titillium Web'}
+  .ws-item.live{background:rgba(225,6,0,.12)}
+  .ws-item.live::before{content:'● LIVE';position:absolute;top:10px;right:14px;font-size:9px;font-weight:800;letter-spacing:1px;color:#ff5a54;font-family:'Titillium Web';animation:blink 1.1s infinite}
+  .ws-item.done{opacity:.5}
+  .ws-item.done .sname::after{content:' ✓';color:var(--green)}
+
+  /* ====== CALENDAR ====== */
+  .cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+  .race-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:border-color .25s,transform .25s}
+  .race-card:hover{border-color:#34425a;transform:translateY(-3px)}
+  .race-card.done{opacity:.62}
+  .race-card.current{border-color:var(--red);box-shadow:0 0 0 1px var(--red),0 12px 30px -16px rgba(225,6,0,.5)}
+  .rc-top{display:flex;align-items:center;gap:14px;padding:16px 18px}
+  .rc-round{width:42px;height:42px;border-radius:10px;background:var(--card-2);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+  .rc-round .r{font-family:'Titillium Web';font-weight:900;font-size:18px;line-height:1}
+  .rc-round .rl{font-size:8px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .rc-mini-track{width:54px;height:40px;flex-shrink:0;margin-left:auto;opacity:.65}
+  .rc-mini-track svg{width:100%;height:100%}
+  .rc-mini-track path{fill:none;stroke:var(--text-2);stroke-width:7;stroke-linejoin:round;stroke-linecap:round}
+  .rc-info{min-width:0}
+  .rc-gp{font-family:'Titillium Web';font-weight:700;font-size:16px;line-height:1.15;display:flex;align-items:center;gap:8px}
+  .rc-gp .fl{font-size:20px}
+  .rc-gp .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rc-circuit{font-size:12.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rc-meta{display:flex;align-items:center;justify-content:space-between;padding:0 18px 14px;gap:10px}
+  .rc-dates{font-size:13px;color:var(--text-2);font-weight:600}
+  .rc-tags{display:flex;gap:6px}
+  .tag{font-size:9.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:3px 7px;border-radius:5px;font-family:'Titillium Web'}
+  .tag.sprint{background:rgba(255,210,63,.15);color:var(--yellow)}
+  .tag.done{background:rgba(29,185,84,.14);color:var(--green)}
+  .tag.next{background:rgba(225,6,0,.16);color:#ff5a54}
+  .rc-expand{width:100%;text-align:left;background:var(--card-2);border:none;border-top:1px solid var(--line-soft);color:var(--text-2);padding:11px 18px;font-family:'Inter';font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .2s}
+  .rc-expand:hover{background:var(--card-hover);color:var(--text)}
+  .rc-expand .chev{transition:transform .3s var(--ease)}
+  .race-card.open .chev{transform:rotate(180deg)}
+  .rc-sessions{max-height:0;overflow:hidden;transition:max-height .4s var(--ease);background:rgba(0,0,0,.18)}
+  .race-card.open .rc-sessions{max-height:520px}
+  .sess-line{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--line-soft);font-size:13px}
+  .sess-line:last-child{border-bottom:none}
+  .sess-line .sn{font-weight:600;display:flex;align-items:center;gap:8px}
+  .sess-line .sn .pill{font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:var(--card-2);color:var(--muted);font-family:'Titillium Web';letter-spacing:.5px}
+  .sess-line.race .sn{color:#fff}.sess-line.race .pill{background:rgba(225,6,0,.2);color:#ff5a54}
+  .sess-line .st{color:var(--text-2);font-variant-numeric:tabular-nums;font-size:12.5px;text-align:right}
+  .rc-watch{padding:12px 18px;background:rgba(0,0,0,.25);display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line-soft)}
+  .rc-watch .wl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+  /* ====== STANDINGS ====== */
+  .standings-bar{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+  .segmented{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;gap:4px}
+  .seg-btn{padding:9px 20px;border:none;background:none;color:var(--muted);font-family:'Titillium Web';font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border-radius:8px;transition:all .2s}
+  .seg-btn.active{background:var(--red);color:#fff;box-shadow:0 4px 14px -4px rgba(225,6,0,.6)}
+  .spoiler-note{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .spoiler-note .ic{color:var(--yellow)}
+
+  .lb{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .lb-head,.lb-row{display:grid;align-items:center}
+  .lb-head{grid-template-columns:54px 1fr 150px 92px 70px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .lb-head.constructors{grid-template-columns:54px 1fr 150px}
+  .lb-head .r-a{text-align:right}
+  .lb-row{grid-template-columns:54px 1fr 150px 92px 70px;padding:13px 20px;border-bottom:1px solid var(--line-soft);transition:background .18s;position:relative}
+  .lb-row.constructors{grid-template-columns:54px 1fr 1fr}
+  .lb-row:last-child{border-bottom:none}
+  .lb-row:hover{background:var(--card-hover)}
+  .lb-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc,transparent)}
+  .pos{font-family:'Titillium Web';font-weight:900;font-size:18px;display:flex;align-items:center;gap:6px}
+  .pos .delta{font-size:10px}
+  .pos.p1{color:#ffd23f}.pos.p2{color:#cdd6e2}.pos.p3{color:#d9883f}
+  .driver-cell{display:flex;align-items:center;gap:13px;min-width:0}
+  .avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Titillium Web';font-weight:900;font-size:13px;letter-spacing:.5px;position:relative;border:2px solid rgba(255,255,255,.12)}
+  .avatar .pn{position:absolute;bottom:-3px;right:-3px;background:var(--bg);border:1px solid var(--line);border-radius:50%;width:18px;height:18px;font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-weight:700}
+  .dn{min-width:0}
+  .dn .full{font-family:'Titillium Web';font-weight:700;font-size:15px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dn .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .team-cell{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--text-2);min-width:0}
+  .team-bar{width:4px;height:22px;border-radius:2px;flex-shrink:0}
+  .team-cell .tnm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pts{font-family:'Titillium Web';font-weight:900;font-size:19px;text-align:right;color:#fff}
+  .pts small{font-size:11px;color:var(--muted);font-weight:600;font-family:'Inter'}
+  .wins{text-align:right;font-family:'Titillium Web';font-weight:700;font-size:16px;color:var(--text-2)}
+  .wins .wtag{font-size:10px;color:var(--muted);font-family:'Inter'}
+  /* constructor points bar */
+  .ctr-pts{display:flex;align-items:center;gap:14px;justify-self:end;width:100%;max-width:380px}
+  .ctr-bar{flex:1;height:8px;background:var(--card-2);border-radius:99px;overflow:hidden}
+  .ctr-bar i{display:block;height:100%;border-radius:99px;transition:width 1s var(--ease)}
+  .ctr-val{font-family:'Titillium Web';font-weight:900;font-size:19px;color:#fff;min-width:54px;text-align:right}
+
+  /* spoiler blur */
+  .spoilerable{transition:filter .25s}
+  body.spoilers-on .spoilerable{filter:blur(8px);cursor:pointer;user-select:none;border-radius:5px}
+  body.spoilers-on .spoilerable:hover{filter:blur(5px)}
+  body.spoilers-on .spoilerable.revealed{filter:none;cursor:default}
+  .spoiler-banner{display:none;align-items:center;gap:10px;background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.25);color:#ffe082;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px}
+  body.spoilers-on .spoiler-banner{display:flex}
+
+  .data-source{margin-top:26px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.7}
+  .data-source code{background:var(--card-2);padding:2px 7px;border-radius:5px;color:var(--text-2);font-size:11px}
+  .src-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--yellow);margin-right:5px;vertical-align:middle}
+
+  /* ====== RESPONSIVE ====== */
+  @media(max-width:880px){
+    .hero{grid-template-columns:1fr}
+    .lb-head{display:none}
+  }
+  @media(max-width:760px){
+    .header-controls{width:100%;margin-left:0;justify-content:space-between}
+    .brand{width:100%}
+    /* standings: rows -> cards */
+    .lb-row,.lb-row.constructors{grid-template-columns:44px 1fr;grid-template-areas:"pos main" "pos stats";gap:6px 12px;padding:14px 16px}
+    .lb-row .pos{grid-area:pos;align-self:start}
+    .driver-cell{grid-area:main}
+    .team-cell{grid-area:stats;padding-left:0}
+    .pts,.wins{grid-area:stats;justify-self:end;align-self:center}
+    .lb-row{position:relative}
+    .pts{position:absolute;right:16px;top:14px}
+    .wins{position:absolute;right:16px;bottom:14px;font-size:13px}
+    .lb-row.constructors{grid-template-areas:"pos main" "pos stats"}
+    .ctr-pts{grid-area:stats;max-width:none}
+    .cd-unit{min-width:0}
+    .facts{grid-template-columns:repeat(3,1fr)}
+  }
+  @media(max-width:480px){
+    .countdown{gap:6px}
+    .cd-unit .num{font-size:26px}
+    .hero-left,.hero-right{padding:22px 18px}
+    main{padding:18px 14px 70px}
+    .header-inner{padding:12px 14px}
+    .tabs{padding:0 14px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="mark">F1</div>
+      <div>
+        <h1>RACE <span>HUB</span></h1>
+        <small id="brand-season">2026 World Championship</small>
+      </div>
+      <div class="header-controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Region</span>
+          <select id="region-select" aria-label="Broadcast region">
+            <option value="uk">🇬🇧 United Kingdom</option>
+            <option value="us">🇺🇸 United States</option>
+            <option value="fr">🇫🇷 France</option>
+            <option value="de">🇩🇪 Germany</option>
+            <option value="it">🇮🇹 Italy</option>
+            <option value="nl">🇳🇱 Netherlands</option>
+            <option value="au">🇦🇺 Australia</option>
+            <option value="global">🌍 Other / Global</option>
+          </select>
+        </div>
+        <div class="toggle" id="spoiler-toggle" role="switch" aria-checked="false" tabindex="0">
+          <div class="track"><div class="knob"></div></div>
+          <span class="txt">Hide Spoilers</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="hub" role="tab">Race Hub</button>
+    <button class="tab" data-tab="calendar" role="tab">Calendar</button>
+    <button class="tab" data-tab="standings" role="tab">Standings</button>
+  </div>
+</header>
+
+<main>
+  <!-- ===================== HUB PANEL ===================== -->
+  <section class="panel active" id="panel-hub">
+    <div class="eyebrow" id="hub-eyebrow">Live Weekend</div>
+    <div class="hero" id="hero"><!-- rendered by JS --></div>
+    <div class="weekend-sessions" id="weekend-sessions"><!-- rendered by JS --></div>
+  </section>
+
+  <!-- ===================== CALENDAR PANEL ===================== -->
+  <section class="panel" id="panel-calendar">
+    <div class="section-head">
+      <span class="eyebrow">Full Season</span>
+      <h2>2026 Calendar</h2>
+      <span class="sub" id="cal-sub"></span>
+    </div>
+    <div class="cal-grid" id="cal-grid"><!-- rendered by JS --></div>
+  </section>
+
+  <!-- ===================== STANDINGS PANEL ===================== -->
+  <section class="panel" id="panel-standings">
+    <div class="section-head">
+      <span class="eyebrow">Championship</span>
+      <h2>Standings</h2>
+      <span class="sub" id="standings-sub"></span>
+    </div>
+    <div class="spoiler-banner">
+      <span>🙈</span> Spoiler-free mode is on. Points &amp; wins are blurred — tap any value to reveal just that one.
+    </div>
+    <div class="standings-bar">
+      <div class="segmented">
+        <button class="seg-btn active" data-view="drivers">Drivers</button>
+        <button class="seg-btn" data-view="constructors">Constructors</button>
+      </div>
+      <span class="spoiler-note"><span class="ic">●</span> Reflects results through Round <span id="rounds-done">11</span></span>
+    </div>
+    <div id="standings-container"><!-- rendered by JS --></div>
+    <div class="data-source">
+      <span class="src-dot"></span><span id="src-text">Showing fallback mock data — set <code>API_CONFIG.enabled = true</code> to pull live results.</span><br>
+      Frontend maps cleanly to the <code>Jolpica / Ergast F1 API</code> &amp; <code>OpenF1 API</code> response shapes.
+    </div>
+  </section>
+</main>
+
+<script>
+/* ============================================================
+   F1 RACE HUB
+   ------------------------------------------------------------
+   Architecture:
+   1. CONFIG + MOCK DATA  (clean shapes that mirror the live API)
+   2. DATA PROVIDER       (async adapter: tries live API, falls
+                           back to mock; includes API->internal
+                           mappers for Jolpica/Ergast)
+   3. TIME ENGINE         (session builder + countdown logic)
+   4. RENDERERS           (hero, calendar, standings)
+   5. CONTROLLER          (tabs, region, spoilers, state)
+   ============================================================ */
+
+/* ===================== 1. CONFIG ===================== */
+const SEASON = 2026;
+
+const API_CONFIG = {
+  enabled: false,                               // flip to true to use live data
+  ergast: 'https://api.jolpi.ca/ergast/f1',     // Ergast-compatible (Jolpica)
+  openf1: 'https://api.openf1.org/v1',          // OpenF1 (live timing/sessions)
+};
+
+/* ---- Teams (2026 grid) with official-style livery colors ---- */
+const TEAMS = {
+  mclaren:  { name:'McLaren',        color:'#ff8000' },
+  ferrari:  { name:'Ferrari',        color:'#e8002d' },
+  redbull:  { name:'Red Bull Racing',color:'#3671c6' },
+  mercedes: { name:'Mercedes',       color:'#27f4d2' },
+  aston:    { name:'Aston Martin',   color:'#229971' },
+  alpine:   { name:'Alpine',         color:'#00a1e8' },
+  williams: { name:'Williams',       color:'#1868db' },
+  rb:       { name:'Racing Bulls',   color:'#6692ff' },
+  audi:     { name:'Audi',           color:'#00aa91' },
+  haas:     { name:'Haas',           color:'#b6babd' },
+  cadillac: { name:'Cadillac',       color:'#c9a227' },
+};
+
+/* ---- Drivers ---- */
+const DRIVERS = {
+  NOR:{name:'Lando Norris',     team:'mclaren', num:4},
+  PIA:{name:'Oscar Piastri',    team:'mclaren', num:81},
+  LEC:{name:'Charles Leclerc',  team:'ferrari', num:16},
+  HAM:{name:'Lewis Hamilton',   team:'ferrari', num:44},
+  VER:{name:'Max Verstappen',   team:'redbull', num:1},
+  TSU:{name:'Yuki Tsunoda',     team:'redbull', num:22},
+  RUS:{name:'George Russell',   team:'mercedes',num:63},
+  ANT:{name:'Kimi Antonelli',   team:'mercedes',num:12},
+  ALO:{name:'Fernando Alonso',  team:'aston',   num:14},
+  STR:{name:'Lance Stroll',     team:'aston',   num:18},
+  GAS:{name:'Pierre Gasly',     team:'alpine',  num:10},
+  COL:{name:'Franco Colapinto', team:'alpine',  num:43},
+  ALB:{name:'Alexander Albon',  team:'williams',num:23},
+  SAI:{name:'Carlos Sainz',     team:'williams',num:55},
+  HAD:{name:'Isack Hadjar',     team:'rb',      num:6},
+  LAW:{name:'Liam Lawson',      team:'rb',      num:30},
+  HUL:{name:'Nico Hülkenberg',  team:'audi',    num:27},
+  BOR:{name:'Gabriel Bortoleto',team:'audi',    num:5},
+  OCO:{name:'Esteban Ocon',     team:'haas',    num:31},
+  BEA:{name:'Oliver Bearman',   team:'haas',    num:87},
+  PER:{name:'Sergio Pérez',     team:'cadillac',num:11},
+  BOT:{name:'Valtteri Bottas',  team:'cadillac',num:77},
+};
+
+/* ---- Driver standings (mock, after Round 11) ---- */
+const DRIVER_STANDINGS = [
+  {code:'NOR',pts:234,wins:4},{code:'PIA',pts:226,wins:3},{code:'VER',pts:198,wins:3},
+  {code:'LEC',pts:156,wins:1},{code:'RUS',pts:143,wins:0},{code:'HAM',pts:122,wins:0},
+  {code:'ANT',pts:98,wins:0}, {code:'ALB',pts:54,wins:0}, {code:'SAI',pts:48,wins:0},
+  {code:'HAD',pts:32,wins:0}, {code:'ALO',pts:30,wins:0}, {code:'HUL',pts:24,wins:0},
+  {code:'GAS',pts:20,wins:0}, {code:'TSU',pts:18,wins:0}, {code:'LAW',pts:16,wins:0},
+  {code:'STR',pts:14,wins:0}, {code:'BEA',pts:12,wins:0}, {code:'OCO',pts:10,wins:0},
+  {code:'BOR',pts:6,wins:0},  {code:'COL',pts:4,wins:0},  {code:'BOT',pts:2,wins:0},
+  {code:'PER',pts:1,wins:0},
+];
+
+/* ---- Constructor standings (derived totals) ---- */
+const CONSTRUCTOR_STANDINGS = [
+  {team:'mclaren',pts:460},{team:'ferrari',pts:278},{team:'mercedes',pts:241},
+  {team:'redbull',pts:216},{team:'williams',pts:102},{team:'rb',pts:48},
+  {team:'aston',pts:44},{team:'audi',pts:30},{team:'alpine',pts:24},
+  {team:'haas',pts:22},{team:'cadillac',pts:3},
+];
+
+/* ---- Stylized SVG track outlines (viewBox 0 0 200 130) ---- */
+const TRACKS = {
+  silverstone:'M28,86 C18,66 30,50 52,52 C70,54 74,72 96,68 C112,65 110,46 130,46 C158,46 176,62 172,82 C169,98 150,98 134,96 C112,93 104,108 84,106 C66,104 60,112 46,108 C33,104 33,98 28,86 Z',
+  monaco:'M30,96 C26,78 40,74 44,60 C47,48 40,38 52,34 C66,29 72,44 86,44 C104,44 104,30 122,32 C142,34 160,40 166,56 C171,70 154,74 150,86 C146,98 158,104 146,108 C128,113 120,100 100,102 C78,104 70,110 54,106 C40,103 32,108 30,96 Z',
+  spa:'M24,70 C20,54 34,48 50,52 C64,55 66,70 80,68 C98,66 96,44 116,42 C140,40 168,46 176,64 C182,78 166,86 150,84 C132,82 130,96 110,98 C88,100 88,86 68,88 C50,90 50,102 38,98 C26,94 26,80 24,70 Z',
+  monza:'M34,100 C26,80 30,40 44,38 C56,36 56,72 70,74 C88,76 92,42 110,42 C134,42 168,44 174,58 C179,70 160,74 150,82 C138,92 152,100 138,104 C116,110 96,96 76,100 C58,103 46,116 34,100 Z',
+  suzuka:'M30,58 C28,44 42,40 56,46 C70,52 70,68 86,66 C104,64 100,42 120,42 C146,42 170,52 172,70 C173,84 156,84 142,82 C124,80 128,98 108,100 C88,102 92,84 72,86 C56,87 60,102 46,98 C32,94 32,72 30,58 Z',
+  d1:'M30,82 C24,62 40,50 60,52 C82,54 84,74 106,70 C126,66 124,46 144,48 C168,50 178,68 170,86 C163,101 138,98 116,98 C92,98 88,104 64,102 C44,100 36,98 30,82 Z',
+  d2:'M34,64 C30,48 46,44 64,48 C84,52 82,70 102,68 C124,66 122,46 142,48 C166,50 174,66 166,82 C159,96 140,92 120,92 C96,92 92,102 68,98 C48,95 38,80 34,64 Z',
+  d3:'M28,74 C22,56 38,46 58,50 C80,54 78,72 100,70 C120,68 116,48 138,50 C164,52 176,70 166,88 C157,103 132,98 110,96 C86,94 84,102 60,100 C42,98 34,90 28,74 Z',
+};
+
+/* ---- Tyre compound colors ---- */
+const TYRE_COLOR = { soft:'#e10600', medium:'#ffd23f', hard:'#e9edf2' };
+
+/* ---- Broadcasters by region ---- */
+const BROADCASTERS = {
+  uk:    {name:'Sky Sports F1', extra:'Highlights on Channel 4', color:'#0072c9'},
+  us:    {name:'ESPN / ESPN+',  extra:'Every session live',      color:'#cc0000'},
+  fr:    {name:'Canal+',        extra:'Live in French',          color:'#000000'},
+  de:    {name:'Sky Deutschland',extra:'Live & on-demand',       color:'#f7022a'},
+  it:    {name:'Sky Italia',    extra:'Live in Italian',         color:'#1d2d6b'},
+  nl:    {name:'Viaplay',       extra:'Dutch commentary',        color:'#ec1c45'},
+  au:    {name:'Fox Sports / Kayo',extra:'Live & ad-free',       color:'#ff6a00'},
+  global:{name:'F1 TV Pro',     extra:'Stream live in HD',       color:'#e10600'},
+};
+
+/* ---- The 2026 calendar. Sessions are generated from friDate+tz ---- */
+const CALENDAR = [
+  {round:1, country:'Australia',  flag:'🇦🇺', gp:'Australian Grand Prix',     circuit:'Albert Park',          city:'Melbourne',   friDate:'2026-03-06', tz:11, laps:58, length:5.278, sprint:false, track:'d1', tyres:['C3','C4','C5']},
+  {round:2, country:'China',      flag:'🇨🇳', gp:'Chinese Grand Prix',        circuit:'Shanghai Intl Circuit',city:'Shanghai',    friDate:'2026-03-20', tz:8,  laps:56, length:5.451, sprint:true,  track:'d2', tyres:['C2','C3','C4']},
+  {round:3, country:'Japan',      flag:'🇯🇵', gp:'Japanese Grand Prix',       circuit:'Suzuka Circuit',       city:'Suzuka',      friDate:'2026-04-03', tz:9,  laps:53, length:5.807, sprint:false, track:'suzuka', tyres:['C1','C2','C3']},
+  {round:4, country:'Bahrain',    flag:'🇧🇭', gp:'Bahrain Grand Prix',        circuit:'Bahrain Intl Circuit', city:'Sakhir',      friDate:'2026-04-10', tz:3,  laps:57, length:5.412, sprint:false, track:'d3', tyres:['C1','C2','C3']},
+  {round:5, country:'Saudi Arabia',flag:'🇸🇦',gp:'Saudi Arabian Grand Prix',  circuit:'Jeddah Corniche',      city:'Jeddah',      friDate:'2026-04-17', tz:3,  laps:50, length:6.174, sprint:false, track:'d1', tyres:['C3','C4','C5']},
+  {round:6, country:'United States',flag:'🇺🇸',gp:'Miami Grand Prix',         circuit:'Miami Intl Autodrome', city:'Miami',       friDate:'2026-05-01', tz:-4, laps:57, length:5.412, sprint:true,  track:'d2', tyres:['C2','C3','C4']},
+  {round:7, country:'Italy',      flag:'🇮🇹', gp:'Emilia-Romagna Grand Prix', circuit:'Imola',                city:'Imola',       friDate:'2026-05-15', tz:2,  laps:63, length:4.909, sprint:false, track:'d3', tyres:['C3','C4','C5']},
+  {round:8, country:'Monaco',     flag:'🇲🇨', gp:'Monaco Grand Prix',         circuit:'Circuit de Monaco',    city:'Monte Carlo', friDate:'2026-05-22', tz:2,  laps:78, length:3.337, sprint:false, track:'monaco', tyres:['C4','C5','C6']},
+  {round:9, country:'Spain',      flag:'🇪🇸', gp:'Spanish Grand Prix',        circuit:'Circuit de Barcelona', city:'Barcelona',   friDate:'2026-06-05', tz:2,  laps:66, length:4.657, sprint:false, track:'d1', tyres:['C1','C2','C3']},
+  {round:10,country:'Canada',     flag:'🇨🇦', gp:'Canadian Grand Prix',       circuit:'Circuit Gilles-Villeneuve',city:'Montréal',friDate:'2026-06-12', tz:-4, laps:70, length:4.361, sprint:false, track:'d2', tyres:['C3','C4','C5']},
+  {round:11,country:'Austria',    flag:'🇦🇹', gp:'Austrian Grand Prix',       circuit:'Red Bull Ring',        city:'Spielberg',   friDate:'2026-06-26', tz:2,  laps:71, length:4.318, sprint:true,  track:'d3', tyres:['C3','C4','C5']},
+  {round:12,country:'Great Britain',flag:'🇬🇧',gp:'British Grand Prix',       circuit:'Silverstone Circuit',  city:'Silverstone', friDate:'2026-07-03', tz:1,  laps:52, length:5.891, sprint:false, track:'silverstone', tyres:['C2','C3','C4']},
+  {round:13,country:'Belgium',    flag:'🇧🇪', gp:'Belgian Grand Prix',        circuit:'Spa-Francorchamps',    city:'Spa',         friDate:'2026-07-17', tz:2,  laps:44, length:7.004, sprint:false, track:'spa', tyres:['C1','C2','C3']},
+  {round:14,country:'Hungary',    flag:'🇭🇺', gp:'Hungarian Grand Prix',      circuit:'Hungaroring',          city:'Budapest',    friDate:'2026-07-24', tz:2,  laps:70, length:4.381, sprint:false, track:'d1', tyres:['C3','C4','C5']},
+  {round:15,country:'Netherlands',flag:'🇳🇱', gp:'Dutch Grand Prix',          circuit:'Zandvoort',            city:'Zandvoort',   friDate:'2026-08-21', tz:2,  laps:72, length:4.259, sprint:false, track:'d2', tyres:['C2','C3','C4']},
+  {round:16,country:'Italy',      flag:'🇮🇹', gp:'Italian Grand Prix',        circuit:'Monza',                city:'Monza',       friDate:'2026-09-04', tz:2,  laps:53, length:5.793, sprint:true,  track:'monza', tyres:['C3','C4','C5']},
+  {round:17,country:'Azerbaijan', flag:'🇦🇿', gp:'Azerbaijan Grand Prix',     circuit:'Baku City Circuit',    city:'Baku',        friDate:'2026-09-18', tz:4,  laps:51, length:6.003, sprint:false, track:'d3', tyres:['C3','C4','C5']},
+  {round:18,country:'Singapore',  flag:'🇸🇬', gp:'Singapore Grand Prix',      circuit:'Marina Bay',           city:'Singapore',   friDate:'2026-10-02', tz:8,  laps:62, length:4.940, sprint:false, track:'d1', tyres:['C3','C4','C5']},
+  {round:19,country:'United States',flag:'🇺🇸',gp:'United States Grand Prix',  circuit:'Circuit of the Americas',city:'Austin',    friDate:'2026-10-16', tz:-5, laps:56, length:5.513, sprint:true,  track:'d2', tyres:['C2','C3','C4']},
+  {round:20,country:'Mexico',     flag:'🇲🇽', gp:'Mexico City Grand Prix',    circuit:'Autódromo H. Rodríguez',city:'Mexico City', friDate:'2026-10-23', tz:-6, laps:71, length:4.304, sprint:false, track:'d3', tyres:['C2','C3','C4']},
+  {round:21,country:'Brazil',     flag:'🇧🇷', gp:'São Paulo Grand Prix',      circuit:'Interlagos',           city:'São Paulo',   friDate:'2026-11-06', tz:-3, laps:71, length:4.309, sprint:true,  track:'d1', tyres:['C2','C3','C4']},
+  {round:22,country:'United States',flag:'🇺🇸',gp:'Las Vegas Grand Prix',     circuit:'Las Vegas Strip',      city:'Las Vegas',   friDate:'2026-11-20', tz:-8, laps:50, length:6.201, sprint:false, track:'d2', tyres:['C3','C4','C5']},
+  {round:23,country:'Qatar',      flag:'🇶🇦', gp:'Qatar Grand Prix',          circuit:'Lusail Intl Circuit',  city:'Lusail',      friDate:'2026-11-27', tz:3,  laps:57, length:5.419, sprint:true,  track:'d3', tyres:['C1','C2','C3']},
+  {round:24,country:'UAE',        flag:'🇦🇪', gp:'Abu Dhabi Grand Prix',      circuit:'Yas Marina',           city:'Abu Dhabi',   friDate:'2026-12-04', tz:4,  laps:58, length:5.281, sprint:false, track:'d1', tyres:['C3','C4','C5']},
+];
+
+/* ===================== 2. DATA PROVIDER ===================== */
+/* Async adapter — swaps to live API when API_CONFIG.enabled.
+   Mappers below show exactly how live JSON folds into our shapes. */
+const DataProvider = {
+  async getSchedule(){
+    if(!API_CONFIG.enabled) return CALENDAR;
+    try{
+      const r = await fetch(`${API_CONFIG.ergast}/${SEASON}.json`);
+      const j = await r.json();
+      return mapSchedule(j);
+    }catch(e){ console.warn('Schedule API failed, using mock:',e); return CALENDAR; }
+  },
+  async getDriverStandings(){
+    if(!API_CONFIG.enabled) return DRIVER_STANDINGS;
+    try{
+      const r = await fetch(`${API_CONFIG.ergast}/${SEASON}/driverStandings.json`);
+      const j = await r.json();
+      return mapDriverStandings(j);
+    }catch(e){ console.warn('Driver standings API failed, using mock:',e); return DRIVER_STANDINGS; }
+  },
+  async getConstructorStandings(){
+    if(!API_CONFIG.enabled) return CONSTRUCTOR_STANDINGS;
+    try{
+      const r = await fetch(`${API_CONFIG.ergast}/${SEASON}/constructorStandings.json`);
+      const j = await r.json();
+      return mapConstructorStandings(j);
+    }catch(e){ console.warn('Constructor standings API failed, using mock:',e); return CONSTRUCTOR_STANDINGS; }
+  },
+};
+/* --- Ergast/Jolpica -> internal mappers (used when live) --- */
+function mapSchedule(j){
+  return j.MRData.RaceTable.Races.map(R=>({
+    round:+R.round, country:R.Circuit.Location.country, flag:'🏁',
+    gp:R.raceName, circuit:R.Circuit.circuitName, city:R.Circuit.Location.locality,
+    sprint:!!R.Sprint, laps:0, length:0, track:'d1', tyres:['C2','C3','C4'],
+    apiSessions:R, // raw — feed to a session builder if going live
+  }));
+}
+function mapDriverStandings(j){
+  const L = j.MRData.StandingsTable.StandingsLists[0]?.DriverStandings||[];
+  return L.map(d=>({ code:d.Driver.code, pts:+d.points, wins:+d.wins }));
+}
+function mapConstructorStandings(j){
+  const L = j.MRData.StandingsTable.StandingsLists[0]?.ConstructorStandings||[];
+  return L.map(c=>({ team:c.Constructor.constructorId, pts:+c.points }));
+}
+
+/* ===================== 3. TIME ENGINE ===================== */
+/* Build absolute (UTC) session instants from a race's local Friday + tz.
+   Displayed later in the *user's* local timezone via toLocaleString. */
+function buildSessions(race){
+  const {friDate, tz, sprint} = race;
+  const mk = (dayOffset,h,m)=>{
+    const d = new Date(friDate+'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate()+dayOffset);
+    d.setUTCHours(h - tz, m, 0, 0);   // local h:m at offset tz -> UTC instant
+    return d;
+  };
+  return sprint ? [
+    {name:'Practice 1',        short:'FP1',   date:mk(0,12,30)},
+    {name:'Sprint Qualifying', short:'SQ',    date:mk(0,16,30)},
+    {name:'Sprint',            short:'SPR',   date:mk(1,11,0)},
+    {name:'Qualifying',        short:'Q',     date:mk(1,15,0)},
+    {name:'Grand Prix',        short:'RACE',  date:mk(2,14,0)},
+  ] : [
+    {name:'Practice 1',   short:'FP1',  date:mk(0,13,30)},
+    {name:'Practice 2',   short:'FP2',  date:mk(0,17,0)},
+    {name:'Practice 3',   short:'FP3',  date:mk(1,12,30)},
+    {name:'Qualifying',   short:'Q',    date:mk(1,16,0)},
+    {name:'Grand Prix',   short:'RACE', date:mk(2,14,0)},
+  ];
+}
+function sessionDurationMin(s){
+  if(s.short==='RACE') return 120;
+  if(s.short==='SPR')  return 45;
+  if(s.short==='Q'||s.short==='SQ') return 60;
+  return 60;
+}
+function allSessions(){
+  const out=[];
+  for(const r of CALENDAR){
+    for(const s of buildSessions(r)){
+      out.push({...s, race:r, end:new Date(s.date.getTime()+sessionDurationMin(s)*60000)});
+    }
+  }
+  return out.sort((a,b)=>a.date-b.date);
+}
+function getRaceState(now=Date.now()){
+  const sessions = allSessions();
+  const live = sessions.find(s=> now>=s.date.getTime() && now<s.end.getTime());
+  const next = sessions.find(s=> s.end.getTime()>now);     // current-or-upcoming
+  const featuredRace = (live?live.race:next?next.race:CALENDAR[CALENDAR.length-1]);
+  // weekend window for featured race
+  const wkSessions = featuredRace ? buildSessions(featuredRace) : [];
+  const wkStart = wkSessions.length ? wkSessions[0].date.getTime() : 0;
+  const wkEnd   = wkSessions.length ? wkSessions[wkSessions.length-1].date.getTime()+120*60000 : 0;
+  const inWeekend = now>=wkStart && now<=wkEnd;
+  return {live, next, featuredRace, inWeekend, seasonOver: !next};
+}
+
+/* ===================== HELPERS ===================== */
+const fmtTime = d => d.toLocaleString(undefined,{weekday:'short',hour:'2-digit',minute:'2-digit'});
+const fmtDateTime = d => d.toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const fmtDayMonth = d => d.toLocaleDateString(undefined,{day:'numeric',month:'short'});
+function contrastText(hex){
+  const c=hex.replace('#',''); const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
+  return (0.299*r+0.587*g+0.114*b)/255 > 0.62 ? '#0a0d13' : '#ffffff';
+}
+const initials = full => full.split(' ').map(w=>w[0]).slice(0,2).join('');
+const tyreKind = (i)=> i===0?'hard':i===1?'medium':'soft';
+
+/* ===================== 4. RENDERERS ===================== */
+const state = {
+  tab: localStorage.getItem('f1.tab') || 'hub',
+  region: localStorage.getItem('f1.region') || 'uk',
+  spoilers: localStorage.getItem('f1.spoilers')==='1',
+  standingsView: 'drivers',
+  schedule: CALENDAR,
+  driverStandings: DRIVER_STANDINGS,
+  constructorStandings: CONSTRUCTOR_STANDINGS,
+};
+let lastHeroKey = '';
+
+/* ---- HERO ---- */
+function renderHero(){
+  const rs = getRaceState();
+  const race = rs.featuredRace;
+  const key = race.round + (rs.live?'-L':'') + (rs.seasonOver?'-O':'');
+  if(key===lastHeroKey){ updateCountdownOnly(rs); return; }
+  lastHeroKey = key;
+
+  const b = BROADCASTERS[state.region];
+  const tyreHtml = race.tyres.map((c,i)=>{
+    const kind=tyreKind(i), col=TYRE_COLOR[kind];
+    return `<div class="tyre"><div class="ring" style="border-color:${col};color:${col}">${c}</div>
+      <div class="tn">${kind[0].toUpperCase()+kind.slice(1)}<small>${c}</small></div></div>`;
+  }).join('');
+
+  let badge;
+  if(rs.seasonOver) badge = `<div class="live-badge upnext"><span class="dot"></span>Season Complete</div>`;
+  else if(rs.live)  badge = `<div class="live-badge live"><span class="dot"></span>Live Now · ${rs.live.name}</div>`;
+  else if(rs.inWeekend) badge = `<div class="live-badge weekend"><span class="dot"></span>Race Weekend</div>`;
+  else badge = `<div class="live-badge upnext"><span class="dot"></span>Up Next</div>`;
+
+  document.getElementById('hub-eyebrow').textContent =
+    rs.live ? 'Session Live' : rs.inWeekend ? 'This Weekend' : 'Next Race Weekend';
+
+  document.getElementById('hero').innerHTML = `
+    <div class="hero-left">
+      ${badge}
+      <div class="hero-round">Round ${race.round} of ${CALENDAR.length} · ${SEASON} Season</div>
+      <div class="hero-title"><span class="hero-flag">${race.flag}</span>${race.gp}</div>
+      <div class="hero-circuit">📍 ${race.circuit}, ${race.city}</div>
+
+      <div class="countdown-label">${rs.live?'Session in progress':'Lights out in'}</div>
+      <div class="countdown" id="countdown">
+        ${['Days','Hrs','Min','Sec'].map(l=>`<div class="cd-unit"><div class="num" id="cd-${l.toLowerCase()}">--</div><div class="lbl">${l}</div></div>`).join('')}
+      </div>
+      <div class="cd-session" id="cd-session"></div>
+      <div class="cd-localtime" id="cd-localtime"></div>
+
+      <div class="hero-watch">
+        <span class="wl">Where to watch</span>
+        <span class="broadcaster"><span class="bdot" style="background:${b.color}"></span>${b.name}</span>
+        <span class="broadcaster"><span class="bdot" style="background:var(--red)"></span>F1 TV Pro</span>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="track-wrap">
+        <svg viewBox="0 0 200 130" aria-label="${race.circuit} layout">
+          <defs><linearGradient id="trackgrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#e10600"/><stop offset="100%" stop-color="#ff7a36"/>
+          </linearGradient></defs>
+          <path class="track-path" d="${TRACKS[race.track]||TRACKS.d1}"/>
+          <circle class="track-start" cx="28" cy="86" r="5"/>
+        </svg>
+      </div>
+      <div class="facts">
+        <div class="fact"><div class="v">${race.laps}</div><div class="k">Laps</div></div>
+        <div class="fact"><div class="v">${race.length}</div><div class="k">km / lap</div></div>
+        <div class="fact"><div class="v">${(race.laps*race.length).toFixed(0)}</div><div class="k">km total</div></div>
+      </div>
+      <div class="tyres">
+        <div class="tl">Pirelli Compounds</div>
+        <div class="tyre-row">${tyreHtml}</div>
+      </div>
+    </div>`;
+
+  renderWeekendSessions(race, rs);
+  updateCountdownOnly(rs);
+}
+
+function renderWeekendSessions(race, rs){
+  const sessions = buildSessions(race);
+  const now=Date.now();
+  const items = sessions.map(s=>{
+    const end = s.date.getTime()+sessionDurationMin(s)*60000;
+    let cls='';
+    if(now>=s.date.getTime() && now<end) cls='live';
+    else if(end<now) cls='done';
+    else if(rs.next && +rs.next.date===+s.date && rs.next.race.round===race.round) cls='next';
+    return `<div class="ws-item ${cls}">
+      <div class="sname">${s.name}</div>
+      <div class="stime">${fmtTime(s.date)}</div>
+      <div class="sdate">${s.date.toLocaleDateString(undefined,{day:'numeric',month:'short'})} · your time</div>
+    </div>`;
+  }).join('');
+  document.getElementById('weekend-sessions').innerHTML =
+    `<div class="ws-head">${race.flag} ${race.gp} — Weekend Schedule</div><div class="ws-grid">${items}</div>`;
+}
+
+function updateCountdownOnly(rs){
+  const sess = document.getElementById('cd-session');
+  const lt = document.getElementById('cd-localtime');
+  const setNums=(d,h,m,s)=>{
+    const map={days:d,hrs:h,min:m,sec:s};
+    for(const k in map){ const el=document.getElementById('cd-'+k); if(el) el.textContent=String(map[k]).padStart(2,'0'); }
+  };
+  if(rs.seasonOver){ setNums(0,0,0,0); if(sess) sess.innerHTML='See you in 2027 🏁'; if(lt) lt.textContent=''; return; }
+  const target = rs.live ? rs.live.end : rs.next.date;
+  const label  = rs.live ? rs.live : rs.next;
+  let diff = target.getTime()-Date.now();
+  if(diff<0) diff=0;
+  const dd=Math.floor(diff/864e5), hh=Math.floor(diff%864e5/36e5), mm=Math.floor(diff%36e5/6e4), ss=Math.floor(diff%6e4/1e3);
+  setNums(dd,hh,mm,ss);
+  if(sess) sess.innerHTML = rs.live
+    ? `<b>${label.name}</b> is underway`
+    : `Next: <b>${label.name}</b> — ${label.race.flag} ${label.race.gp}`;
+  if(lt) lt.textContent = rs.live ? `Ends ~${fmtTime(label.end)} your time` : `${fmtDateTime(label.date)} · your local time`;
+}
+
+/* ---- CALENDAR ---- */
+function renderCalendar(){
+  const now=Date.now();
+  const rs=getRaceState();
+  const b=BROADCASTERS[state.region];
+  document.getElementById('cal-sub').textContent = `${CALENDAR.length} races · ${CALENDAR.filter(r=>r.sprint).length} sprints`;
+
+  document.getElementById('cal-grid').innerHTML = CALENDAR.map(race=>{
+    const sessions=buildSessions(race);
+    const raceSession=sessions[sessions.length-1];
+    const done = raceSession.date.getTime()+120*60000 < now;
+    const isCurrent = rs.featuredRace && rs.featuredRace.round===race.round && !done;
+    const d0=sessions[0].date, d1=raceSession.date;
+    const dateStr = d0.getMonth()===d1.getMonth()
+      ? `${d0.getDate()}–${d1.getDate()} ${d1.toLocaleDateString(undefined,{month:'short'})}`
+      : `${fmtDayMonth(d0)} – ${fmtDayMonth(d1)}`;
+
+    const tags=[];
+    if(race.sprint) tags.push('<span class="tag sprint">Sprint</span>');
+    if(isCurrent) tags.push('<span class="tag next">Up Next</span>');
+    else if(done) tags.push('<span class="tag done">✓ Done</span>');
+
+    const sessLines = sessions.map(s=>`
+      <div class="sess-line ${s.short==='RACE'?'race':''}">
+        <span class="sn"><span class="pill">${s.short}</span>${s.name}</span>
+        <span class="st">${fmtDateTime(s.date)}</span>
+      </div>`).join('');
+
+    return `<div class="race-card ${done?'done':''} ${isCurrent?'current':''}" data-round="${race.round}">
+      <div class="rc-top">
+        <div class="rc-round"><div class="r">${String(race.round).padStart(2,'0')}</div><div class="rl">Round</div></div>
+        <div class="rc-info">
+          <div class="rc-gp"><span class="fl">${race.flag}</span><span class="nm">${race.gp}</span></div>
+          <div class="rc-circuit">${race.circuit} · ${race.city}</div>
+        </div>
+        <div class="rc-mini-track"><svg viewBox="0 0 200 130"><path d="${TRACKS[race.track]||TRACKS.d1}"/></svg></div>
+      </div>
+      <div class="rc-meta">
+        <div class="rc-dates">${dateStr}</div>
+        <div class="rc-tags">${tags.join('')}</div>
+      </div>
+      <button class="rc-expand" data-toggle="${race.round}">
+        <span>Session times · ${race.laps} laps · ${race.length} km</span>
+        <span class="chev">▾</span>
+      </button>
+      <div class="rc-sessions">
+        ${sessLines}
+        <div class="rc-watch">
+          <span class="wl">Watch in ${region_label()}</span>
+          <span class="broadcaster"><span class="bdot" style="background:${b.color}"></span>${b.name}</span>
+          <span class="broadcaster"><span class="bdot" style="background:var(--red)"></span>F1 TV Pro</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function region_label(){ return document.querySelector('#region-select option:checked').textContent.replace(/^[^\w]+/,'').trim(); }
+
+/* ---- STANDINGS ---- */
+function renderStandings(){
+  document.getElementById('standings-sub').textContent =
+    state.standingsView==='drivers' ? `${state.driverStandings.length} drivers` : `${state.constructorStandings.length} teams`;
+  const c=document.getElementById('standings-container');
+  c.innerHTML = state.standingsView==='drivers' ? driverBoard() : constructorBoard();
+}
+function driverBoard(){
+  const rows = state.driverStandings.map((d,i)=>{
+    const drv=DRIVERS[d.code]||{name:d.code,team:'haas',num:''};
+    const team=TEAMS[drv.team]||{name:'',color:'#888'};
+    const pos=i+1;
+    const avBg=team.color, avFg=contrastText(team.color);
+    return `<div class="lb-row" style="--tc:${team.color}">
+      <div class="pos ${pos<=3?'p'+pos:''}">${pos}</div>
+      <div class="driver-cell">
+        <div class="avatar" style="background:${avBg};color:${avFg}">${d.code}<span class="pn">${drv.num}</span></div>
+        <div class="dn"><div class="full">${drv.name}</div><div class="sub">${team.name}</div></div>
+      </div>
+      <div class="team-cell"><span class="team-bar" style="background:${team.color}"></span><span class="tnm">${team.name}</span></div>
+      <div class="pts"><span class="spoilerable">${d.pts}</span> <small>PTS</small></div>
+      <div class="wins"><span class="spoilerable">${d.wins}</span> <span class="wtag">${d.wins===1?'win':'wins'}</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="lb">
+    <div class="lb-head"><div>Pos</div><div>Driver</div><div>Team</div><div class="r-a">Points</div><div class="r-a">Wins</div></div>
+    ${rows}</div>`;
+}
+function constructorBoard(){
+  const max=Math.max(...state.constructorStandings.map(t=>t.pts));
+  const rows=state.constructorStandings.map((t,i)=>{
+    const team=TEAMS[t.team]||{name:t.team,color:'#888'};
+    const pos=i+1;
+    return `<div class="lb-row constructors" style="--tc:${team.color}">
+      <div class="pos ${pos<=3?'p'+pos:''}">${pos}</div>
+      <div class="team-cell"><span class="team-bar" style="background:${team.color};height:28px;width:5px"></span>
+        <span class="tnm" style="font-family:'Titillium Web';font-weight:700;font-size:16px;color:#fff">${team.name}</span></div>
+      <div class="ctr-pts">
+        <div class="ctr-bar"><i class="spoilerable" style="width:${(t.pts/max*100).toFixed(1)}%;background:${team.color}"></i></div>
+        <div class="ctr-val spoilerable">${t.pts}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="lb">
+    <div class="lb-head constructors"><div>Pos</div><div>Constructor</div><div class="r-a">Points</div></div>
+    ${rows}</div>`;
+}
+
+/* ===================== 5. CONTROLLER ===================== */
+function switchTab(tab){
+  state.tab=tab; localStorage.setItem('f1.tab',tab);
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tab));
+  if(tab==='calendar') renderCalendar();
+  if(tab==='standings') renderStandings();
+}
+
+function applySpoilers(){
+  document.body.classList.toggle('spoilers-on', state.spoilers);
+  const tog=document.getElementById('spoiler-toggle');
+  tog.classList.toggle('on',state.spoilers);
+  tog.setAttribute('aria-checked', state.spoilers);
+}
+
+function init(){
+  // restore state
+  document.getElementById('region-select').value = state.region;
+  applySpoilers();
+
+  // tabs
+  document.querySelectorAll('.tab').forEach(t=> t.addEventListener('click',()=>switchTab(t.dataset.tab)) );
+
+  // region
+  document.getElementById('region-select').addEventListener('change',e=>{
+    state.region=e.target.value; localStorage.setItem('f1.region',state.region);
+    lastHeroKey=''; renderHero();
+    if(state.tab==='calendar') renderCalendar();
+  });
+
+  // spoiler toggle
+  const tog=document.getElementById('spoiler-toggle');
+  const flip=()=>{ state.spoilers=!state.spoilers; localStorage.setItem('f1.spoilers',state.spoilers?'1':'0'); applySpoilers(); };
+  tog.addEventListener('click',flip);
+  tog.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();} });
+
+  // reveal individual spoilers on click
+  document.addEventListener('click',e=>{
+    const sp=e.target.closest('.spoilerable');
+    if(sp && document.body.classList.contains('spoilers-on')) sp.classList.add('revealed');
+  });
+
+  // standings segmented control
+  document.querySelectorAll('.seg-btn').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.seg-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); state.standingsView=b.dataset.view; renderStandings();
+  }));
+
+  // expand/collapse race cards (delegated)
+  document.getElementById('cal-grid').addEventListener('click',e=>{
+    const btn=e.target.closest('[data-toggle]'); if(!btn) return;
+    btn.closest('.race-card').classList.toggle('open');
+  });
+
+  // load data (async; falls back to mock instantly)
+  loadData();
+
+  // first paint
+  renderHero();
+  switchTab(state.tab);
+
+  // countdown ticker
+  setInterval(()=>{ renderHero(); }, 1000);
+}
+
+async function loadData(){
+  const [sched, drv, ctr] = await Promise.all([
+    DataProvider.getSchedule(), DataProvider.getDriverStandings(), DataProvider.getConstructorStandings()
+  ]);
+  state.schedule=sched; state.driverStandings=drv; state.constructorStandings=ctr;
+  if(API_CONFIG.enabled){
+    document.getElementById('src-text').innerHTML='● Live data connected via Jolpica/Ergast F1 API.';
+    document.querySelector('.src-dot').style.background='var(--green)';
+  }
+  if(state.tab==='standings') renderStandings();
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
